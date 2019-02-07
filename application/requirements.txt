@@ -1,2 +1,4 @@
+Beaker==1.10.0
 bottle==0.12.16
 psycopg2-binary==2.7.7
+redis==3.1.0

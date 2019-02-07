@@ -1,7 +1,18 @@
 import os
+from random import randint
 
 import bottle
 import psycopg2
+
+from beaker.cache import CacheManager
+from beaker.util import parse_cache_config_options
+
+
+cache_opts = {
+    'cache.type': 'ext:redis',
+    'cache.url': 'redis://redis-host/0'
+}
+cache = CacheManager(**parse_cache_config_options(cache_opts))
 
 
 def get_db_active_users() -> list:
@@ -35,10 +46,22 @@ def get_db_active_users() -> list:
     return [usename for usename, in rows]
 
 
+@cache.cache(expire=3)
+def get_random(_min: int, _max: int) -> int:
+    """This function is just a cached version of random.randint
+
+    Returns:
+        int: returns the sample result for 3 seconds
+    """
+
+    return randint(_min, _max)
+
+
 @bottle.route('/')
 def index():
     active_users = get_db_active_users()
-    return f'Active users: {active_users}'
+    random_number = get_random(0, 1000)
+    return f'Active users: {active_users} - random: {random_number}'
 
 
 if __name__ == '__main__':
